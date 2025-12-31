@@ -1,8 +1,7 @@
-package com.pharmassist.auth.security;
+package com.pharmassist.auth.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -15,9 +14,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api").permitAll()
-                )
-                .httpBasic(Customizer.withDefaults());
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                );
 
         return http.build();
     }
