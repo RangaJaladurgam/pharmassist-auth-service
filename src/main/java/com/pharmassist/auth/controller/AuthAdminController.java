@@ -94,4 +94,25 @@ public class AuthAdminController {
         return authAdminResponseBuilder.success(HttpStatus.FOUND, "Admins Found", adminResponses);
     }
 
+    @Operation(description = "The End-point can be used to update the Admin",
+            responses = {
+                    @ApiResponse(responseCode = "200",description = "Admin Updated",
+                            content = {
+                                    @Content(schema = @Schema(implementation = AuthAdminResponseDto.class))
+                            }),
+                    @ApiResponse(responseCode = "400",description = "Bad AdminRequest, Invalid Input",
+                            content = {
+                                    @Content(schema = @Schema(implementation = ErrorStructure.class))
+                            }),
+                    @ApiResponse(responseCode = "404",description = "Admin Not Found",
+                            content = {
+                                    @Content(schema = @Schema(implementation = ErrorStructure.class))
+                            })
+            })
+    @PutMapping("/admins")
+    public ResponseEntity<ResponseStructure<AuthAdminResponseDto>> updateAdmin(@RequestBody @Valid AuthAdminRequestDto adminRequest){
+        AuthAdminResponseDto adminResponse = authAdminService.updateAdmin(adminRequest);
+        return authAdminResponseBuilder.success(HttpStatus.OK, "Admin Updated", adminResponse);
+    }
+
 }

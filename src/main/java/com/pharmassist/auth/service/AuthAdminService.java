@@ -47,19 +47,7 @@ public class AuthAdminService {
         String email = getCurrentLoggedInUser();
         return authAdminRepository.findByEmail(email)
                 .map((admin)-> {
-                    PharmacyResponseDto pharmacyResponseDto = null;
-                    try {
-                        pharmacyResponseDto = restTemplate.getForEntity(
-                                "http://localhost:8180/api/pharmacy/" + admin.getPharmacyId(),
-                                PharmacyResponseDto.class
-                        ).getBody();
-                    } catch (Exception e) {
-
-                        System.err.println("Failed to fetch pharmacy for adminId=" + admin.getAdminId() + ": " + e.getMessage());
-                        log.error("Failed to fetch pharmacy for adminId={}: {}", admin.getAdminId(), e.getMessage());
-
-                    }
-                    return authAdminMapper.mapToAdminResponse(admin, pharmacyResponseDto);
+                    return authAdminMapper.mapToAdminResponse(admin, getPharmacyResponseDtoById(admin.getPharmacyId()));
                 })
                 .orElseThrow(()-> new AdminNotFoundByIdException("Failed to find the Admin"));
     }
@@ -71,24 +59,40 @@ public class AuthAdminService {
 
         return admins.stream()
                 .map(admin -> {
-                    PharmacyResponseDto pharmacyResponseDto = null;
-                    try {
-                        pharmacyResponseDto = restTemplate.getForEntity(
-                                "http://localhost:8180/api/pharmacy/" + admin.getPharmacyId(),
-                                PharmacyResponseDto.class
-                        ).getBody();
-                    } catch (Exception e) {
-
-                        System.err.println("Failed to fetch pharmacy for adminId=" + admin.getAdminId() + ": " + e.getMessage());
-                        log.error("Failed to fetch pharmacy for adminId={}: {}", admin.getAdminId(), e.getMessage());
-
-                    }
-                    return authAdminMapper.mapToAdminResponse(admin, pharmacyResponseDto);
+                    return authAdminMapper.mapToAdminResponse(admin, getPharmacyResponseDtoById(admin.getPharmacyId()));
                 })
                 .toList();
     }
 
+    public AuthAdminResponseDto updateAdmin(AuthAdminRequestDto adminRequest) {
+        String email = getCurrentLoggedInUser();
+        return authAdminRepository.findByEmail(email)
+                .map((exAdmin)->{
+                    exAdmin = authAdminMapper.mapToAdmin(adminRequest, exAdmin);
+                    exAdmin.setPassword(passwordEncoder.encode(exAdmin.getPassword()));
+                    return authAdminRepository.save(exAdmin);
+                })
+                .map(admin -> authAdminMapper.mapToAdminResponse(admin,getPharmacyResponseDtoById(admin.getPharmacyId())))
+                .orElseThrow(()-> new AdminNotFoundByIdException("Failed to Update the Admin"));
+
+    }
+
     private String getCurrentLoggedInUser() {
         return Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName();
+    }
+
+    private PharmacyResponseDto getPharmacyResponseDtoById(String pharmacyId){
+            PharmacyResponseDto pharmacyResponseDto = null;
+            try {
+                pharmacyResponseDto = restTemplate.getForEntity(
+                        "http://localhost:8180/api/pharmacy/" + pharmacyId,
+                        PharmacyResponseDto.class
+                ).getBody();
+            } catch (Exception e) {
+
+                System.err.println("Failed to fetch pharmacy for adminId=" + pharmacyId + ": " + e.getMessage());
+                log.error("Failed to fetch pharmacy for adminId={}: {}", pharmacyId, e.getMessage());
+            }
+            return pharmacyResponseDto;
     }
 }
