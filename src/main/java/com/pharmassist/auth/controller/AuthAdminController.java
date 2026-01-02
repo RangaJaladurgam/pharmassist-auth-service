@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthAdminController {
@@ -75,5 +77,21 @@ public class AuthAdminController {
         return authAdminResponseBuilder.success(HttpStatus.FOUND,"Admin found by Email", adminResponse);
     }
 
+    @Operation(description = "The End-point can be used to List all the Admins",
+            responses = {
+                    @ApiResponse(responseCode = "302",description = "Admins Found",
+                            content = {
+                                    @Content(schema = @Schema(implementation = AuthAdminResponseDto.class))
+                            }),
+                    @ApiResponse(responseCode = "404",description = "No Admins Found",
+                            content = {
+                                    @Content(schema = @Schema(implementation = ErrorStructure.class))
+                            })
+            })
+    @GetMapping("/admins")
+    public ResponseEntity<ResponseStructure<List<AuthAdminResponseDto>>> findAllAdmins(){
+        List<AuthAdminResponseDto> adminResponses = authAdminService.findAllAdmins();
+        return authAdminResponseBuilder.success(HttpStatus.FOUND, "Admins Found", adminResponses);
+    }
 
 }

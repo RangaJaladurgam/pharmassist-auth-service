@@ -2,42 +2,90 @@ package com.pharmassist.auth.service;
 
 import com.pharmassist.auth.dto.AuthAdminRequestDto;
 import com.pharmassist.auth.dto.AuthAdminResponseDto;
+import com.pharmassist.auth.dto.PharmacyResponseDto;
 import com.pharmassist.auth.exception.AdminNotFoundByIdException;
+import com.pharmassist.auth.exception.NoAdminsFoundException;
 import com.pharmassist.auth.mapper.AuthAdminMapper;
 import com.pharmassist.auth.model.Admin;
 import com.pharmassist.auth.repository.AuthAdminRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
 public class AuthAdminService {
 
+    private Logger log = LoggerFactory.getLogger(AuthAdminService.class);
+
     private final AuthAdminRepository authAdminRepository;
     private final AuthAdminMapper authAdminMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RestTemplate restTemplate;
 
-    public AuthAdminService(AuthAdminRepository authAdminRepository, AuthAdminMapper authAdminMapper, PasswordEncoder passwordEncoder) {
+    public AuthAdminService(AuthAdminRepository authAdminRepository, AuthAdminMapper authAdminMapper, PasswordEncoder passwordEncoder, RestTemplate restTemplate) {
         this.authAdminRepository = authAdminRepository;
         this.authAdminMapper = authAdminMapper;
         this.passwordEncoder = passwordEncoder;
+        this.restTemplate = restTemplate;
     }
 
     public AuthAdminResponseDto postAdmin(AuthAdminRequestDto adminRequest) {
         Admin admin = authAdminMapper.mapToAdmin(adminRequest, new Admin());
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         admin = authAdminRepository.save(admin);
-
+        log.info("Admin Created Successfully...");
         return authAdminMapper.mapToAdminResponse(admin,null);
     }
 
     public AuthAdminResponseDto findAdmin() {
         String email = getCurrentLoggedInUser();
         return authAdminRepository.findByEmail(email)
-                .map((admin)-> authAdminMapper.mapToAdminResponse(admin,null))
+                .map((admin)-> {
+                    PharmacyResponseDto pharmacyResponseDto = null;
+                    try {
+                        pharmacyResponseDto = restTemplate.getForEntity(
+                                "http://localhost:8180/api/pharmacy/" + admin.getPharmacyId(),
+                                PharmacyResponseDto.class
+                        ).getBody();
+                    } catch (Exception e) {
+
+                        System.err.println("Failed to fetch pharmacy for adminId=" + admin.getAdminId() + ": " + e.getMessage());
+                        log.error("Failed to fetch pharmacy for adminId={}: {}", admin.getAdminId(), e.getMessage());
+
+                    }
+                    return authAdminMapper.mapToAdminResponse(admin, pharmacyResponseDto);
+                })
                 .orElseThrow(()-> new AdminNotFoundByIdException("Failed to find the Admin"));
+    }
+
+    public List<AuthAdminResponseDto> findAllAdmins() {
+        List<Admin> admins = authAdminRepository.findAll();
+        if(admins.isEmpty())
+            throw new NoAdminsFoundException("Failed to find all Admins");
+
+        return admins.stream()
+                .map(admin -> {
+                    PharmacyResponseDto pharmacyResponseDto = null;
+                    try {
+                        pharmacyResponseDto = restTemplate.getForEntity(
+                                "http://localhost:8180/api/pharmacy/" + admin.getPharmacyId(),
+                                PharmacyResponseDto.class
+                        ).getBody();
+                    } catch (Exception e) {
+
+                        System.err.println("Failed to fetch pharmacy for adminId=" + admin.getAdminId() + ": " + e.getMessage());
+                        log.error("Failed to fetch pharmacy for adminId={}: {}", admin.getAdminId(), e.getMessage());
+
+                    }
+                    return authAdminMapper.mapToAdminResponse(admin, pharmacyResponseDto);
+                })
+                .toList();
     }
 
     private String getCurrentLoggedInUser() {
