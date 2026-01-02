@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -56,7 +57,23 @@ public class AuthAdminController {
     }
 
 
-
+    @Operation(description = "The End-point can be used to find the Admin",
+            responses = {
+                    @ApiResponse(responseCode = "302",description = "Admin Found",
+                            content = {
+                                    @Content(schema = @Schema(implementation = AuthAdminResponseDto.class))
+                            }),
+                    @ApiResponse(responseCode = "404",description = "Admin Not Found",
+                            content = {
+                                    @Content(schema = @Schema(implementation = ErrorStructure.class))
+                            })
+            }
+    )
+    @GetMapping("/profile")
+    public ResponseEntity<ResponseStructure<AuthAdminResponseDto>> findAdmin(){
+        AuthAdminResponseDto adminResponse = authAdminService.findAdmin();
+        return authAdminResponseBuilder.success(HttpStatus.FOUND,"Admin found by Email", adminResponse);
+    }
 
 
 }
