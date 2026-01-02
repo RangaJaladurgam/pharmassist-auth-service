@@ -1,4 +1,4 @@
-package com.pharmassist.auth.dto;
+package com.pharmassist.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

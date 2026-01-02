@@ -1,11 +1,14 @@
 package com.pharmassist.auth.controller;
 
-import com.pharmassist.auth.dto.AuthAdminRequestDto;
-import com.pharmassist.auth.dto.AuthAdminResponseDto;
+import com.pharmassist.auth.dto.request.AuthAdminRequestDto;
+import com.pharmassist.auth.dto.response.AuthAdminResponseDto;
+import com.pharmassist.auth.dto.request.LoginRequest;
+import com.pharmassist.auth.dto.response.AuthResponse;
 import com.pharmassist.auth.helper.AuthAdminResponseBuilder;
 import com.pharmassist.auth.helper.structureDto.ErrorStructure;
 import com.pharmassist.auth.helper.structureDto.ResponseStructure;
-import com.pharmassist.auth.service.AuthAdminService;
+import com.pharmassist.auth.security.jwt.JwtService;
+import com.pharmassist.auth.service.impl.AuthAdminServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,7 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,11 +30,15 @@ import java.util.List;
 public class AuthAdminController {
 
     private final AuthAdminResponseBuilder authAdminResponseBuilder;
-    private final AuthAdminService authAdminService;
+    private final AuthAdminServiceImpl authAdminService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AuthAdminController(AuthAdminResponseBuilder authAdminResponseBuilder, AuthAdminService authAdminService) {
+    public AuthAdminController(AuthAdminResponseBuilder authAdminResponseBuilder, AuthAdminServiceImpl authAdminService, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.authAdminResponseBuilder = authAdminResponseBuilder;
         this.authAdminService = authAdminService;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @GetMapping
@@ -35,6 +46,20 @@ public class AuthAdminController {
         return "Working...";
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+            );
+
+            String token = jwtService.generateToken(loginRequest.getEmail());
+            return authAdminResponseBuilder.success(HttpStatus.OK,"Login successful.",new AuthResponse(token));
+        } catch (BadCredentialsException e) {
+            return authAdminResponseBuilder.error(HttpStatus.UNAUTHORIZED,
+                    "Invalid Credentials","Bad Credentials");
+        }
+    }
 
     @Operation(description = "The End-point can be used to save the Admin",
             responses = {
