@@ -24,8 +24,8 @@ public class PharmassistAuthServiceApplication {
 
 	@PostConstruct
 	public void checkJwtSecret() {
-		System.out.println("JWT SECRET LOADED: " + (secret != null));
-		System.out.println("JWT SECRET (env): " + System.getenv("JWT_SECRET"));
+//		System.out.println("JWT SECRET LOADED: " + (secret != null));
+//		System.out.println("JWT SECRET (env): " + System.getenv("JWT_SECRET"));
 
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
 		System.out.println("JVM TZ = " + TimeZone.getDefault().getID());

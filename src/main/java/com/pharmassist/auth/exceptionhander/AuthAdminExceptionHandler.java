@@ -1,5 +1,6 @@
 package com.pharmassist.auth.exceptionhander;
 
+import com.pharmassist.auth.exception.AdminAlreadyExistsByEmailException;
 import com.pharmassist.auth.exception.AdminNotFoundByIdException;
 import com.pharmassist.auth.exception.NoAdminsFoundException;
 import com.pharmassist.auth.helper.AuthAdminResponseBuilder;
@@ -24,5 +25,10 @@ public class AuthAdminExceptionHandler {
     @ExceptionHandler(NoAdminsFoundException.class)
     public ResponseEntity<ErrorStructure<String>> handleAdminsNotFound(NoAdminsFoundException ex){
         return authAdminResponseBuilder.error(HttpStatus.NOT_FOUND, ex.getMessage(), "No Admins Found");
+    }
+
+    @ExceptionHandler(AdminAlreadyExistsByEmailException.class)
+    public ResponseEntity<ErrorStructure<String>> handleAdminAlreadyExistsByEmail(AdminAlreadyExistsByEmailException ex){
+        return authAdminResponseBuilder.error(HttpStatus.CONFLICT, ex.getMessage(), "Failed to register due to email already exists!");
     }
 }

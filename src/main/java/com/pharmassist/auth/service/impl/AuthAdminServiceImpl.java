@@ -3,6 +3,7 @@ package com.pharmassist.auth.service.impl;
 import com.pharmassist.auth.dto.request.AuthAdminRequestDto;
 import com.pharmassist.auth.dto.response.AuthAdminResponseDto;
 import com.pharmassist.auth.dto.response.PharmacyResponseDto;
+import com.pharmassist.auth.exception.AdminAlreadyExistsByEmailException;
 import com.pharmassist.auth.exception.AdminNotFoundByIdException;
 import com.pharmassist.auth.exception.NoAdminsFoundException;
 import com.pharmassist.auth.mapper.AuthAdminMapper;
@@ -38,8 +39,14 @@ public class AuthAdminServiceImpl implements AuthAdminService {
         this.restTemplate = restTemplate;
     }
 
-    public AuthAdminResponseDto postAdmin(AuthAdminRequestDto adminRequest) {
-        Admin admin = authAdminMapper.mapToAdmin(adminRequest, new Admin());
+    public AuthAdminResponseDto postAdmin(AuthAdminRequestDto authAdminRequestDto) {
+
+        if(authAdminRepository.findByEmail(authAdminRequestDto.getEmail()).isPresent()){
+            throw new AdminAlreadyExistsByEmailException("Email already registered");
+        }
+
+
+        Admin admin = authAdminMapper.mapToAdmin(authAdminRequestDto, new Admin());
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         admin = authAdminRepository.save(admin);
         log.info("Admin Created Successfully...");
@@ -98,10 +105,5 @@ public class AuthAdminServiceImpl implements AuthAdminService {
             }
             return pharmacyResponseDto;
     }
-    private void ok(){
-        List l = List.of(1,"raj");
-        System.out.println(l);
 
-
-    }
 }

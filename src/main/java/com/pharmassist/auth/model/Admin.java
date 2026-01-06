@@ -1,13 +1,15 @@
 package com.pharmassist.auth.model;
 
 import com.pharmassist.auth.config.CustomId;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ADMINS")
+@Table(
+        name = "ADMINS",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "email")
+        }
+)
 public class Admin {
 
     @Id
@@ -15,7 +17,7 @@ public class Admin {
     @Column(name = "admin_id")
     private String adminId;
 
-    @Column(name = "email")
+    @Column(name = "email",nullable = false, unique = true)
     private String email;
 
     @Column(name = "phone_number")
