@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -95,5 +97,11 @@ public class AuthAdminServiceImpl implements AuthAdminService {
                 log.error("Failed to fetch pharmacy for adminId={}: {}", pharmacyId, e.getMessage());
             }
             return pharmacyResponseDto;
+    }
+    private void ok(){
+        List l = List.of(1,"raj");
+        System.out.println(l);
+
+
     }
 }
