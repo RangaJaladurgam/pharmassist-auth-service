@@ -1,4 +1,4 @@
-package com.pharmassist.auth.dto;
+package com.pharmassist.auth.dto.response;
 
 public class AuthAdminResponseDto {
 

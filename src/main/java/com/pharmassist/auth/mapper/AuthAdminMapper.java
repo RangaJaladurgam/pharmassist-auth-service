@@ -1,8 +1,8 @@
 package com.pharmassist.auth.mapper;
 
-import com.pharmassist.auth.dto.AuthAdminRequestDto;
-import com.pharmassist.auth.dto.AuthAdminResponseDto;
-import com.pharmassist.auth.dto.PharmacyResponseDto;
+import com.pharmassist.auth.dto.request.AuthAdminRequestDto;
+import com.pharmassist.auth.dto.response.AuthAdminResponseDto;
+import com.pharmassist.auth.dto.response.PharmacyResponseDto;
 import com.pharmassist.auth.model.Admin;
 import org.springframework.stereotype.Component;
 
