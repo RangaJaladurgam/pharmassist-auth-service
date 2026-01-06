@@ -17,8 +17,8 @@ public class PharmassistAuthServiceApplication {
 
 	public static void main(String[] args) {
 //		System.out.println("JWT SECRET LOADED: " + (new PharmassistAuthServiceApplication().secret != null) +"-> "+ System.getenv("JWT_SECRET"));
-//		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
-//		System.out.println("JVM TZ = " + TimeZone.getDefault().getID());
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
+		System.out.println("JVM TZ = " + TimeZone.getDefault().getID());
 		SpringApplication.run(PharmassistAuthServiceApplication.class, args);
 	}
 
